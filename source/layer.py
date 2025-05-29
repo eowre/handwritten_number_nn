@@ -22,6 +22,26 @@ class Layer:
         z = np.dot(self.weights, inputs) + self.biases
         return self.sigmoid(z)
     
+    def backward(self, inputs, output_gradient, learning_rate):
+        """
+        Perform a backward pass through the layer.
+        
+        :param inputs: Input data to the layer.
+        :param output_gradient: Gradient of the loss with respect to the output of this layer.
+        :return: Gradient of the loss with respect to the inputs of this layer.
+        """
+        z = np.dot(self.weights, inputs) + self.biases
+        sigmoid_derivative = self.sigmoid_derivative(z)
+        delta = output_gradient * sigmoid_derivative
+
+        weights_gradient = np.outer(delta, inputs)
+        biases_gradient = delta
+
+        self.weights -= learning_rate * weights_gradient
+        self.biases -= learning_rate * biases_gradient
+
+        return np.dot(self.weights.T, delta)
+    
     def __str__(self):
         """
         String representation of the Layer object.
