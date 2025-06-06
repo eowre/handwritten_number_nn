@@ -1,6 +1,8 @@
 import numpy as np
 import random
 import time
+import pickle
+from vis_handler import visHandler
 from async_logger import BufferedLogger, AsyncLogger
 
 class Network:
@@ -35,8 +37,7 @@ class Network:
         """
         for i in reversed(range(len(self.layers))):
             layer = self.layers[i]
-            inputs = self.inputs[i]
-            output_gradient = layer.backward(inputs, output_gradient, learning_rate)
+            output_gradient = layer.backward(output_gradient, learning_rate)
         return output_gradient
     
     def calculate_loss(self, output, target):
@@ -95,6 +96,32 @@ class Network:
             print(f"Epoch {epoch + 1}/{epochs}, Loss: {total_loss / len(training_data):.4f}")
             _logger.log(f"Epoch {epoch + 1}/{epochs}, Loss: {total_loss / len(training_data):.4f}")
             
+    def test(self, test_data, visualize=False, num_visuals=5):
+        """
+        Test the network using the provided test data.
+        
+        :param test_data: List of tuples (input, target) for testing.
+        :param visualize: Whether to visualize the predictions.
+        :return: Accuracy of the network on the test data.
+        """
+        correct = 0
+        total = len(test_data)
+        
+        for i, (input_data, label) in enumerate(test_data):
+            output = self.forward(input_data)
+            prediction = np.argmax(output)
+            true_label = np.argmax(label)
+
+            if prediction == true_label:
+                correct += 1
+
+            if visualize and i < num_visuals:
+                handler = visHandler(input_image=input_data, label=true_label)
+                handler.show_prediction(output)
+        
+        accuracy = correct / len(test_data)
+        print(f"Test Accuracy: {accuracy * 100:.2f}%")
+        return accuracy
                 
                 
     def __str__(self):
@@ -104,3 +131,45 @@ class Network:
         :return: String representation of the network's layers.
         """
         return "\n".join(str(layer) for layer in self.layers)
+
+    def save(self, file_path):
+        """
+        Save the network to a file.
+        
+        :param file_path: Path to the file where the network will be saved.
+        """
+        parameters = []
+        for layer in self.layers:
+            params = {
+                'weights': layer.weights,
+                'biases': layer.biases,
+                'activation_function': layer.activation,
+                'number_inputs': layer.number_inputs,
+                'number_neurons': layer.number_neurons
+            }
+            parameters.append(params)
+        with open(file_path, 'wb') as f:
+            pickle.dump(parameters, f)
+        print(f"Network saved to {file_path}")
+
+    def load(self, file_path):
+        """
+        Load the network from a file.
+        
+        :param file_path: Path to the file from which the network will be loaded.
+        """
+        from layer import Layer  # Ensure Layer is imported from the correct module
+        with open(file_path, 'rb') as f:
+            parameters = pickle.load(f)
+
+        self.layers = []
+        for params in parameters:
+            layer = Layer(
+                number_neurons=params['number_neurons'],
+                number_inputs=params['number_inputs'],
+                activation=params['activation']
+            )
+            layer.weights = params['weights']
+            layer.biases = params['biases']
+            self.layers.append(layer)
+        print(f"Network loaded from {file_path}")

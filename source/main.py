@@ -80,9 +80,9 @@ def main():
 
     # Create a simple neural network
     layers = [
-        layer.Layer(784, 728),  # Input layer with 784 inputs (28x28 pixels) and 728 neurons
-        layer.Layer(728, 16),   # Hidden layer with 16 neurons
-        layer.Layer(16, 16),   # Hidden layer with 16 neurons
+        layer.Layer(784, 728, activation="relu"),  # Input layer with 784 inputs (28x28 pixels) and 728 neurons
+        layer.Layer(728, 16, activation="relu"),   # Hidden layer with 16 neurons
+        layer.Layer(16, 16, activation="relu"),   # Hidden layer with 16 neurons
         layer.Layer(16, 10, activation="softmax")     # Output layer with 10 neurons (one for each digit)
     ]
     
@@ -93,7 +93,7 @@ def main():
     neural_network.train(
         training_data=list(zip(train_images, train_labels_one_hot)),
         epochs=10,  # Number of epochs to train
-        learning_rate=0.01  # Learning rate for weight updates
+        learning_rate=0.001  # Learning rate for weight updates
     )
 
     # Evaluate the network on the test set
@@ -106,6 +106,9 @@ def main():
             correct_predictions += 1
     accuracy = correct_predictions / len(test_images)
     print(f"Test accuracy: {accuracy * 100:.2f}%")
+
+    network_file_path = "handwritten_number_nn/network.pkl"
+    neural_network.save(network_file_path)
 
 if __name__ == "__main__":
     main()
