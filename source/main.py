@@ -2,6 +2,7 @@ import struct
 import numpy as np
 import layer
 import network
+import os
 
 def parse_idx1_ubyte(file_path):
     """
@@ -51,6 +52,14 @@ def one_hot_encode(labels, num_classes=10):
         one_hot[i, label] = 1
     return one_hot
 
+def format_filename(layer_sizes, activations):
+    """
+    Format the filename based on layer sizes and activations.
+    """
+    layer_str = "_".join(map(str, layer_sizes))
+    activation_str = "_".join(activations)
+    return f"model_{layer_str}_{activation_str}"
+
 def main():
 
     # Load MNIST dataset
@@ -79,36 +88,53 @@ def main():
 
 
     # Create a simple neural network
+    layer_sizes = [724, 728, 16, 16, 10]  # Input layer (784), two hidden layers (728, 16), output layer (10)
+    activations = ["relu", "relu", "relu", "softmax"]  # Activation functions for each layer
     layers = [
-        layer.Layer(784, 728, activation="relu"),  # Input layer with 784 inputs (28x28 pixels) and 728 neurons
-        layer.Layer(728, 16, activation="relu"),   # Hidden layer with 16 neurons
-        layer.Layer(16, 16, activation="relu"),   # Hidden layer with 16 neurons
-        layer.Layer(16, 10, activation="softmax")     # Output layer with 10 neurons (one for each digit)
+        layer.Layer(layer_sizes[i], layer_sizes[i + 1], activation=activations[i])
+        for i in range(len(layer_sizes) - 1)
     ]
-    
-    neural_network = network.Network(layers)
-    
+    configs = [
+        ([784, 10], ["softmax"]),
+        ([784, 64, 10], ["relu", "softmax"]),
+        ([784, 128, 64, 10], ["relu", "relu", "softmax"]),
+        ([784, 784, 16, 16, 10], ["relu", "relu", "relu", "softmax"]),
+        ([784, 256, 128, 64, 10], ["relu", "relu", "relu", "softmax"]),
+    ]
+
+    # Ensure directory exists
+    os.makedirs("trained_models", exist_ok=True)
+
+    for idx, (layer_sizes, activations) in enumerate(configs):
+        filename = format_filename(layer_sizes, activations)
+
+        print(f"\n=== {filename} ===\n")
 
 
-    neural_network.train(
-        training_data=list(zip(train_images, train_labels_one_hot)),
-        epochs=10,  # Number of epochs to train
-        learning_rate=0.001  # Learning rate for weight updates
-    )
+        print(f"\n=== Training Model {idx + 1} ===")
+        layers = [
+            layer.Layer(layer_sizes[i], layer_sizes[i + 1], activation=activations[i])
+            for i in range(len(layer_sizes) - 1)
+        ]
+        model = network.Network(layers)
+        model.train(
+            training_data=list(zip(train_images, train_labels_one_hot)),
+            epochs=10,
+            learning_rate=0.001,
+            log_file_name=filename
+        )
 
-    # Evaluate the network on the test set
-    correct_predictions = 0
-    for i in range(len(test_images)):
-        output = neural_network.forward(test_images[i])
-        predicted_label = np.argmax(output)
-        true_label = test_labels[i]  # already an integer
-        if predicted_label == true_label:
-            correct_predictions += 1
-    accuracy = correct_predictions / len(test_images)
-    print(f"Test accuracy: {accuracy * 100:.2f}%")
+        # Evaluate accuracy
+        correct = sum(
+            np.argmax(model.forward(img)) == label
+            for img, label in zip(test_images, test_labels)
+        )
+        accuracy = correct / len(test_labels)
+        print(f"Accuracy: {accuracy * 100:.2f}%")
 
-    network_file_path = "handwritten_number_nn/network.pkl"
-    neural_network.save(network_file_path)
+        # Save model
+        model.save(f"{filename}.pkl")
+        print(f"Saved model to {filename}.pkl")
 
 if __name__ == "__main__":
     main()

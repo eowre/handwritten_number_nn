@@ -50,7 +50,7 @@ class Network:
         """
         return -np.sum(target * np.log(output + 1e-12))
  
-    def train(self, training_data, epochs, learning_rate):
+    def train(self, training_data, epochs, learning_rate, log_file_name="training_async"):
         """
         Train the network using the provided training data.
         
@@ -58,7 +58,7 @@ class Network:
         :param epochs: Number of epochs to train the network.
         :param learning_rate: Learning rate for weight updates.
         """
-        _logger = AsyncLogger("training_async.log")
+        _logger = AsyncLogger(f"logs/{log_file_name}.log")
 
         batch_size = 1000
         for epoch in range(epochs):
@@ -95,7 +95,8 @@ class Network:
                     batch_start_time = time.time()  # reset for next batch
             print(f"Epoch {epoch + 1}/{epochs}, Loss: {total_loss / len(training_data):.4f}")
             _logger.log(f"Epoch {epoch + 1}/{epochs}, Loss: {total_loss / len(training_data):.4f}")
-            
+        _logger.close()  # Close the logger at the end of training
+        print("Training complete.") 
     def test(self, test_data, visualize=False, num_visuals=5):
         """
         Test the network using the provided test data.
@@ -150,7 +151,6 @@ class Network:
             parameters.append(params)
         with open(file_path, 'wb') as f:
             pickle.dump(parameters, f)
-        print(f"Network saved to {file_path}")
 
     def load(self, file_path):
         """

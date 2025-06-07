@@ -175,3 +175,11 @@ cython_debug/
 
 # project Congfig files
 config.json
+
+#trained model files
+.pkl
+model_784_10_softmax.pkl
+model_784_64_10_relu_softmax.pkl
+model_784_128_64_10_relu_relu_softmax.pkl
+model_784_256_128_64_10_relu_relu_relu_softmax.pkl
+model_784_784_16_16_10_relu_relu_relu_softmax.pkl

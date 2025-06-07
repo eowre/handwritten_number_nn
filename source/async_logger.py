@@ -1,8 +1,7 @@
 import logging
 from logging.handlers import QueueHandler, QueueListener
 import queue
-import threading
-import time
+import os
 
 class BufferedLogger:
     """
@@ -32,6 +31,8 @@ class BufferedLogger:
 class AsyncLogger:
     def __init__(self, log_file):
         self.log_file = log_file
+
+        os.makedirs(os.path.dirname(log_file), exist_ok=True)
         self.log_queue = queue.Queue(-1)
 
         self.queue_handler = QueueHandler(self.log_queue)
