@@ -2,7 +2,7 @@ import numpy as np
 import random
 import time
 import pickle
-from vis_handler import visHandler
+from visHandler import visHandler
 from async_logger import BufferedLogger, AsyncLogger
 
 class Network:
@@ -151,8 +151,9 @@ class Network:
             parameters.append(params)
         with open(file_path, 'wb') as f:
             pickle.dump(parameters, f)
-
-    def load(self, file_path):
+    
+    @classmethod
+    def load(cls, file_path):
         """
         Load the network from a file.
         
@@ -161,15 +162,15 @@ class Network:
         from layer import Layer  # Ensure Layer is imported from the correct module
         with open(file_path, 'rb') as f:
             parameters = pickle.load(f)
-
-        self.layers = []
+        layers = []
         for params in parameters:
             layer = Layer(
                 number_neurons=params['number_neurons'],
                 number_inputs=params['number_inputs'],
-                activation=params['activation']
+                activation=params['activation_function']
             )
             layer.weights = params['weights']
             layer.biases = params['biases']
-            self.layers.append(layer)
+            layers.append(layer)
         print(f"Network loaded from {file_path}")
+        return cls(layers)

@@ -86,14 +86,6 @@ def main():
     train_labels_one_hot = one_hot_encode(train_labels, num_classes=10)
     test_labels_one_hot = one_hot_encode(test_labels, num_classes=10)
 
-
-    # Create a simple neural network
-    layer_sizes = [724, 728, 16, 16, 10]  # Input layer (784), two hidden layers (728, 16), output layer (10)
-    activations = ["relu", "relu", "relu", "softmax"]  # Activation functions for each layer
-    layers = [
-        layer.Layer(layer_sizes[i], layer_sizes[i + 1], activation=activations[i])
-        for i in range(len(layer_sizes) - 1)
-    ]
     configs = [
         ([784, 10], ["softmax"]),
         ([784, 64, 10], ["relu", "softmax"]),
