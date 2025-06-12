@@ -172,5 +172,5 @@ class Network:
             layer.weights = params['weights']
             layer.biases = params['biases']
             layers.append(layer)
-        print(f"Network loaded from {file_path}")
+        # print(f"Network loaded from {file_path}")
         return cls(layers)
